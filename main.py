@@ -27,7 +27,7 @@ def gen():
 
 def init_telegram():
 	try:
-		if TELE_BOT_TOKEN == "":
+		if TELE_BOT_TOKEN == "" or TELE_BOT_TOKEN is None:
 			with open("telegramtoken.txt") as f:
 				TELE_BOT_TOKEN = f.read()
 	except Exception as e:
@@ -43,6 +43,7 @@ def sendToTelegram(w, eth):
 if __name__ == '__main__':
 	# https://eth-mainnet.g.alchemy.com/v2/OatS-qWUFcNjgKNFTrq1m14A9h51mX2N
 	w3 = Web3(Web3.HTTPProvider("https://eth-mainnet.g.alchemy.com/v2/cVoH6Tl8hMagXnCBYRb3cl7wxj7TXbCu"))
+	init_telegram()
 	fthread = safefilewriter(wq)
 	fthread.start()
 	brute_thread = {}
