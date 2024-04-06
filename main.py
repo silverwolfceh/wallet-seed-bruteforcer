@@ -26,10 +26,13 @@ def gen():
 	return mnemo.generate(strength=128)
 
 def init_telegram():
+	global TELE_BOT_TOKEN
 	try:
 		if TELE_BOT_TOKEN == "" or TELE_BOT_TOKEN is None:
 			with open("telegramtoken.txt") as f:
 				TELE_BOT_TOKEN = f.read()
+			url=f"https://api.telegram.org/bot{TELE_BOT_TOKEN}/sendMessage"
+			requests.get(url, params = {"chat_id": TELE_CHAT_ID,"text": "Telegram connect successfully"})
 	except Exception as e:
 		print(e)
 
