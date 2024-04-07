@@ -1,0 +1,9 @@
+{
+    "SUPPORT_COIN" : {
+        "BTC" : "m/44'/0'/0'/0/0",
+        "ETH" : "m/44'/60'/0'/0/0"
+    },
+    "MAX_THREAD" : 20,
+    "TELE_TOKEN" : "",
+    "TELE_CHAN_ID" : "5624258194"
+}
