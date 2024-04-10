@@ -33,8 +33,8 @@ def init_telegram():
 		if TELE_BOT_TOKEN == "" or TELE_BOT_TOKEN is None:
 			with open("telegramtoken.txt") as f:
 				TELE_BOT_TOKEN = f.read()
-			url=f"https://api.telegram.org/bot{TELE_BOT_TOKEN}/sendMessage"
-			requests.get(url, params = {"chat_id": TELE_CHAT_ID,"text": "Telegram connect successfully"})
+		url=f"https://api.telegram.org/bot{TELE_BOT_TOKEN}/sendMessage"
+		requests.get(url, params = {"chat_id": TELE_CHAT_ID,"text": "Telegram connect successfully"})
 	except Exception as e:
 		print(e)
 
@@ -47,7 +47,7 @@ def sendToTelegram(w, coin, bl):
 
 
 def load_config():
-	global MAX_THREAD, TELE_BOT_TOKEN, TELE_CHAT_ID
+	global MAX_THREAD, TELE_BOT_TOKEN, TELE_CHAT_ID, SUPPORT_COIN
 	with open("config.json") as f:
 		config = json.loads(f.read())
 		MAX_THREAD = int(config["MAX_THREAD"])
