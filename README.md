@@ -20,8 +20,8 @@ Install the modules
 ```bash
 pip install -r requirements.txt
 ```
-Open main.py and set the TELEGRAM TOKEN
 
+Open config.json and update the data, refer to coinlist.txt for current support coin
 
 ### :running: Run Locally
 
