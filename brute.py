@@ -11,9 +11,13 @@ class walletbrute(threading.Thread):
         self.gen = genfunc
         self.coinlist = coinlist
         self.logcb = logcb
+        self.running = True
+    
+    def stop(self):
+        self.running = False
 
     def run(self):
-        while True:
+        while self.running:
             w = self.gen()
             try:
                 r, coin, bl = checkBalance(self.w3, w, self.coinlist)

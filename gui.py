@@ -1,8 +1,12 @@
 import tkinter as tk
-import json
+import queue
 import tkinter.font as tkFont
 from enum import Enum
+import webbrowser
 from app import start_app, stop_app
+from config import configcls, COINSTR, coin_to_path, CONFIGSTR
+from util import init_telegram, send_found
+from fileio import safefilewriter
 
 class APPSTATE(Enum):
 	STOP  =  0
@@ -10,9 +14,10 @@ class APPSTATE(Enum):
 
 
 class App:
-	def __init__(self, root, version, preconfig):
+	def __init__(self, root, version):
+		self.var_init()
 		#setting title
-		root.title(f"Wallet Scanner V{version}")
+		root.title(f"ETH Wallet Scanner V{version}")
 		root.iconbitmap("icon.ico")
 		#setting window size
 		width=400
@@ -23,20 +28,12 @@ class App:
 		root.geometry(alignstr)
 		root.resizable(width=False, height=False)
 
-		self.eth_var = tk.BooleanVar()
-		self.btc_var = tk.BooleanVar()
-		self.bnb_var = tk.BooleanVar()
-		self.sol_var = tk.BooleanVar()
-		self.max_thread = 0
-		self.telechat_var = tk.StringVar()
-		self.state = APPSTATE.STOP
-
 		self.txt_log= tk.Text(root, wrap="word")
 		self.txt_log["borderwidth"] = "1px"
 		ft = tkFont.Font(family='Times',size=10)
 		self.txt_log["font"] = ft
 		self.txt_log["fg"] = "#333333"
-		self.txt_log.insert("1.0", "Running log") 
+		# self.txt_log.insert("1.0", "Running log") 
 		self.txt_log.place(x=0,y=60,width=394,height=183)
 
 		lbl_banner=tk.Label(root)
@@ -132,15 +129,15 @@ class App:
 		self.txt_telechatid["text"] = "Telegram Chat ID"
 		self.txt_telechatid.place(x=190,y=310,width=203,height=30)
 
-		btn_start=tk.Button(root)
-		btn_start["bg"] = "#f0f0f0"
+		self.btn_start=tk.Button(root)
+		self.btn_start["bg"] = "#f0f0f0"
 		ft = tkFont.Font(family='Times',size=10)
-		btn_start["font"] = ft
-		btn_start["fg"] = "#000000"
-		btn_start["justify"] = "center"
-		btn_start["text"] = "Start"
-		btn_start.place(x=10,y=350,width=109,height=30)
-		btn_start["command"] = self.btn_start_command
+		self.btn_start["font"] = ft
+		self.btn_start["fg"] = "#000000"
+		self.btn_start["justify"] = "center"
+		self.btn_start["text"] = "Start"
+		self.btn_start.place(x=10,y=350,width=109,height=30)
+		self.btn_start["command"] = self.btn_start_command
 
 		btn_config=tk.Button(root)
 		btn_config["bg"] = "#f0f0f0"
@@ -207,22 +204,47 @@ class App:
 		btn_email.place(x=270,y=550,width=70,height=25)
 		btn_email["command"] = self.btn_email_command
 
+	def var_init(self):
+		self.eth_var = tk.BooleanVar()
+		self.btc_var = tk.BooleanVar()
+		self.bnb_var = tk.BooleanVar()
+		self.sol_var = tk.BooleanVar()
+		self.telechat_var = tk.StringVar()
+		self.state = APPSTATE.STOP
+		self.config = configcls()
+		self.max_thread = self.config.get("MAX_THREAD", 20)
+		self.wthread = {}
+		self.support_list = ["btc", "eth", "sol", "bnb"]
+		self.wq = queue.Queue()
+		self.fthread = safefilewriter(self.wq)
+		self.fthread.start()
 	
 	def coin_selection_update(self):
-		eth_enable = self.eth_var.get()
-		btc_enable = self.btc_var.get()
-		bnb_enable = self.bnb_var.get()
-		sol_enable = self.sol_var.get()
-		print(f"ETH: {eth_enable} | BTC: {btc_enable} | BNB: {bnb_enable} | SOL: {sol_enable}")
+		scoins = {}
+		for c in self.support_list:
+			is_enable = getattr(self, f"{c}_var").get()
+			if is_enable:
+				scoins[c] = coin_to_path(c)
+		self.config.set(CONFIGSTR.SUPPORT_COIN.value, scoins)
 
+
+	def stop_app_done(self):
+		self.btn_start.configure(state=tk.NORMAL)
+		self.btn_start["text"] = "Start"
 
 	def btn_start_command(self):
 		if self.state == APPSTATE.STOP:
-			start_app(self.running_log, self.found_log)
+			self.running_log("Starting the app.... \n")
+			self.wthread = start_app(self.running_log, self.found_log)
 			self.state = APPSTATE.START
+			self.btn_start["text"] = "Stop"
 		else:
-			stop_app()
+			self.running_log("Stopping the app.... \n")
+			stop_app(self.wthread, self.stop_app_done)
 			self.state = APPSTATE.STOP
+			self.btn_start["text"] = "Stopping..."
+			self.btn_start.configure(state=tk.DISABLED)
+
 
 
 	def btn_export_command(self):
@@ -230,15 +252,18 @@ class App:
 
 
 	def btn_zalo_command(self):
-		print("command")
+		url = "https://zalo.me/g/wwtwfk998"
+		webbrowser.open_new_tab(url)
 
 
 	def btn_discord_command(self):
-		print("Discord")
+		url = "https://discordapp.com/users/753230071195631707"
+		webbrowser.open_new_tab(url)
 
 
 	def btn_email_command(self):
-		print("command")
+		url = "mailo:evisrss1@gmail.com?subject=Wallet+Scanner+V3"
+		webbrowser.open_new_tab(url)
 
 	def append_text(self, widget, msg):
 		widget.insert(tk.END, msg)
@@ -247,27 +272,29 @@ class App:
 	def running_log(self, msg):
 		self.txt_log.after(0, self.append_text, self.txt_log, msg)
 
-	def found_log(self, msg):
+	def found_log(self, w, coin, bl):
+		send_found(self.wq, self.txt_teletoken.get(), self.txt_telechatid.get(), w, coin, bl)
+		msg = f"[{coin}] Balance: {bl} - {w} \n"
 		self.txt_found.after(0, self.append_text, self.txt_found, msg)
 
 	def btn_load_config(self):
-		with open("config.json") as f:
-			data = json.loads(f.read())
-			for k, v in data["SUPPORT_COIN"].items():
-				c = k.lower()
-				var = getattr(self, f"{c}_var")
-				var.set(True)
-			self.txt_teletoken.delete(0, tk.END)  
-			self.txt_teletoken.insert(0, data["TELE_TOKEN"])
-			self.txt_telechatid.delete(0, tk.END)
-			self.txt_telechatid.insert(0, data["TELE_CHAN_ID"])
-
-				
-		print("Load config")
+		support_coins = self.config.get("SUPPORT_COIN", {})
+		for k, v in support_coins.items():
+			# Check and uncheck for coins
+			c = k.lower()
+			var = getattr(self, f"{c}_var")
+			var.set(True)
+		
+		self.txt_teletoken.delete(0, tk.END)  
+		self.txt_teletoken.insert(0, self.config.get("TELE_TOKEN", "7160327586:AAFFuwwZ4IW3WV0GalBzSqOOrDUk2vXULX0"))
+		self.txt_telechatid.delete(0, tk.END)
+		self.txt_telechatid.insert(0, self.config.get("TELE_CHAN_ID", "5624258194"))
+		init_telegram(self.txt_teletoken.get(), self.txt_telechatid.get())
+		self.running_log("Configuration was loaded \n")
 
 if __name__ == "__main__":
 	ver = "3"
 	config = []
 	root = tk.Tk()
-	app = App(root, ver, config)
+	app = App(root, ver)
 	root.mainloop()
