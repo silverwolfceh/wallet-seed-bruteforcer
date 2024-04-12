@@ -5,20 +5,9 @@ import json
 from enum import Enum
 import py_compile
 import os
-
-# def make_modules():
-#      directory = "coinspecific"
-#      for root, dirs, files in os.walk(directory):
-#         for file in files:
-#             if file.endswith(".py"):  # Check if the file is a Python file
-#                 file_path = os.path.join(root, file)
-#                 cfile_path = os.path.join(root, file.split(".")[0] + ".pyc")
-#                 print(f"Compiling {file_path}...")
-#                 with open(file_path, "r") as f:
-#                      source_code = f.read()
-#                 code_object = compile(source_code, file_path, "exec")
-#                 with open(cfile_path, "wb") as f:
-#                      f.write(code_object.co_code)
+import base64
+import hashlib
+import uuid
 
 def make_modules():
 	directory = "coinspecific"
@@ -99,6 +88,7 @@ class CONFIGSTR(Enum):
 	TELE_TOKEN = "TELE_TOKEN"
 	TELE_CHAN_ID = "TELE_CHAN_ID"
 	MODULE = "MODULE"
+	LICENSE_KEY = "LICENSE"
 	
 
 class COINSTR(Enum):
@@ -122,5 +112,18 @@ def coin_to_path(coinstr):
 	
 	return None
 
+def create_finger_print(username, mac_address, ipdata):
+    data = username.encode() + mac_address.encode() + ipdata.encode()
+    md5_hash = hashlib.md5(data).hexdigest()
+    return md5_hash
+
+def get_user_id():
+	username = os.getlogin()
+	mac_address = ':'.join(['{:02x}'.format((uuid.getnode() >> elements) & 0xff) for elements in range(0,2*6,2)][::-1])
+	res = requests.get('http://ip-api.com/json/')
+	ipdata = json.dumps(res.json())
+	return create_finger_print(username, mac_address, ipdata)
+
 if __name__ == "__main__":
 	make_modules()
+	print(get_user_id())

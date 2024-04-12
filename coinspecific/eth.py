@@ -21,6 +21,9 @@ def checkBalance(w3, words, coinlist):
 			return True, k, bl
 	return False, "", 0 
 
+def initModule():
+	return True
+
 if __name__ == '__main__':
 	w3 = Web3(Web3.HTTPProvider("https://eth-mainnet.g.alchemy.com/v2/OatS-qWUFcNjgKNFTrq1m14A9h51mX2N"))
 	word = "float bridge decline salmon visit mosquito smoke room giggle stamp normal unlock"
