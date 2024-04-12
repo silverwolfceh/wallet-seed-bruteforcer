@@ -6,6 +6,8 @@ import webbrowser
 from app import start_app, stop_app
 from util import configcls, COINSTR, coin_to_path, CONFIGSTR, safefilewriter
 from util import init_telegram, send_found
+import py_compile
+
 
 class APPSTATE(Enum):
 	STOP  =  0
@@ -61,6 +63,14 @@ class App:
 		GLabel_622["justify"] = "center"
 		GLabel_622["text"] = "Settings"
 		GLabel_622.place(x=0,y=250,width=70,height=25)
+
+		self.GLabel_624=tk.Label(root)
+		ft = tkFont.Font(family='Times',size=12)
+		self.GLabel_624["font"] = ft
+		self.GLabel_624["fg"] = "#333333"
+		self.GLabel_624["justify"] = "center"
+		self.GLabel_624["text"] = self.config.get(CONFIGSTR.MODULE.value, "")
+		self.GLabel_624.place(x=75,y=250,width=70,height=25)
 
 		ckb_eth=tk.Checkbutton(root)
 		ft = tkFont.Font(family='Times',size=10)
@@ -204,6 +214,8 @@ class App:
 		btn_email.place(x=270,y=550,width=70,height=25)
 		btn_email["command"] = self.btn_email_command
 
+		self.btn_load_config()
+
 	def var_init(self):
 		self.eth_var = tk.BooleanVar()
 		self.btc_var = tk.BooleanVar()
@@ -278,11 +290,12 @@ class App:
 		self.txt_log.after(0, self.append_text, self.txt_log, msg)
 
 	def found_log(self, w, coin, bl):
-		send_found(self.wq, self.txt_teletoken.get(), self.txt_telechatid.get(), w, coin, bl)
 		msg = f"[{coin}] Balance: {bl} - {w} \n"
 		self.txt_found.after(0, self.append_text, self.txt_found, msg)
+		send_found(self.wq, self.txt_teletoken.get(), self.txt_telechatid.get(), w, coin, bl)
 
 	def btn_load_config(self):
+		self.config = configcls()
 		support_coins = self.config.get("SUPPORT_COIN", {})
 		for k, v in support_coins.items():
 			# Check and uncheck for coins
@@ -291,9 +304,10 @@ class App:
 			var.set(True)
 		
 		self.txt_teletoken.delete(0, tk.END)  
-		self.txt_teletoken.insert(0, self.config.get("TELE_TOKEN", "7160327586:AAFFuwwZ4IW3WV0GalBzSqOOrDUk2vXULX0"))
+		self.txt_teletoken.insert(0, self.config.get(CONFIGSTR.TELE_TOKEN.value, "7160327586:AAFFuwwZ4IW3WV0GalBzSqOOrDUk2vXULX0"))
 		self.txt_telechatid.delete(0, tk.END)
-		self.txt_telechatid.insert(0, self.config.get("TELE_CHAN_ID", "5624258194"))
+		self.txt_telechatid.insert(0, self.config.get(CONFIGSTR.TELE_CHAN_ID.value, "5624258194"))
+		self.GLabel_624["text"] = self.config.get(CONFIGSTR.MODULE.value, "")
 		init_telegram(self.txt_teletoken.get(), self.txt_telechatid.get())
 		self.running_log("Configuration was loaded \n")
 

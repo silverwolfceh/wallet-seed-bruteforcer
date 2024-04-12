@@ -1,7 +1,6 @@
 import threading
-import time
-from mnemonic import Mnemonic
 import importlib.util
+import importlib.machinery
 
 
 class walletbrute(threading.Thread):
@@ -14,16 +13,17 @@ class walletbrute(threading.Thread):
         self.logcb = logcb
         self.running = True
         self.func = None
-        self.set_func("eth")
+        self.set_func("eth.pyc")
     
     def stop(self):
         self.running = False
 
     def set_func(self, mname):
         try:
-            spec = importlib.util.spec_from_file_location(mname, f"coinspecific/{mname}.py")
+            spec = importlib.util.spec_from_file_location(mname, f"coinspecific/{mname}")
+            loader = importlib.machinery.SourcelessFileLoader(mname, f"coinspecific/{mname}")
             module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
+            loader.exec_module(module)
             self.func = getattr(module, 'checkBalance')
         except FileNotFoundError:
             print(f"Module {mname} not found.")
