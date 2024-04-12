@@ -1,7 +1,8 @@
 import threading
 import time
-from wallet import checkBalance
 from mnemonic import Mnemonic
+import importlib.util
+
 
 class walletbrute(threading.Thread):
     def __init__(self, callback, w3, genfunc, coinlist, logcb = print):
@@ -12,19 +13,36 @@ class walletbrute(threading.Thread):
         self.coinlist = coinlist
         self.logcb = logcb
         self.running = True
+        self.func = None
+        self.set_func("eth")
     
     def stop(self):
         self.running = False
 
+    def set_func(self, mname):
+        try:
+            spec = importlib.util.spec_from_file_location(mname, f"coinspecific/{mname}.py")
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            self.func = getattr(module, 'checkBalance')
+        except FileNotFoundError:
+            print(f"Module {mname} not found.")
+        except AttributeError:
+            print(f"Function checkBalance not found in module {mname}.")
+
     def run(self):
+        if self.func is None:
+            self.logcb(f"Error: Wrong setting. Stop \n")
+            print("Wrong settings")
+            return
+        
         while self.running:
             w = self.gen()
             try:
-                r, coin, bl = checkBalance(self.w3, w, self.coinlist)
+                r, coin, bl = self.func(self.w3, w, self.coinlist)
                 if r:
                     self.foundcb(w, coin, bl)
                 self.logcb(f"Balance: {bl} - {w} \n")
             except Exception as e:
-                print(w)
+                self.logcb(f"Error: {w} \n")
                 print(e)
-

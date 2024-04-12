@@ -4,9 +4,8 @@ import tkinter.font as tkFont
 from enum import Enum
 import webbrowser
 from app import start_app, stop_app
-from config import configcls, COINSTR, coin_to_path, CONFIGSTR
+from util import configcls, COINSTR, coin_to_path, CONFIGSTR, safefilewriter
 from util import init_telegram, send_found
-from fileio import safefilewriter
 
 class APPSTATE(Enum):
 	STOP  =  0
@@ -16,6 +15,7 @@ class APPSTATE(Enum):
 class App:
 	def __init__(self, root, version):
 		self.var_init()
+		root.protocol("WM_DELETE_WINDOW", self.clean_up)
 		#setting title
 		root.title(f"ETH Wallet Scanner V{version}")
 		root.iconbitmap("icon.ico")
@@ -227,6 +227,11 @@ class App:
 				scoins[c] = coin_to_path(c)
 		self.config.set(CONFIGSTR.SUPPORT_COIN.value, scoins)
 
+	def clean_up(self):
+		print("Clearning....")
+		self.wq.put(None)
+		root.destroy()
+		
 
 	def stop_app_done(self):
 		self.btn_start.configure(state=tk.NORMAL)
