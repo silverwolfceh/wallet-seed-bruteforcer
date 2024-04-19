@@ -1,7 +1,9 @@
 <div align='center'>
 <h1>Bruteforcing forgotten wallet using seed phrases</h1>
 </div>
-
+<p align="center">
+<img align="center" src="icon.png" alt="wolfxforce" height="40" width="40" />
+</p>
 
 ## :star2: About the Project
 This project aim to find the forgotten wallet using mnemonic generator (12 words).
