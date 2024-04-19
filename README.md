@@ -39,3 +39,8 @@ python gui.py
 <a href="https://fb.com/wolfxforce" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/facebook.svg" alt="wolfxforce" height="30" width="40" /></a> &nbsp;
   <a href="https://fb.com/wolfxforce" target="blank"><img align="center" src="https://github.com/rahuldkjain/github-profile-readme-generator/raw/master/src/images/icons/Social/github.svg" alt="wolfxforce" height="30" width="40" /></a>
 </p>
+
+### Screenshot
+<p align="left">
+<img align="center" src="docs/2024-04-19_10h38_09.png" alt="wolfxforce" height="600" width="400" />
+</p>
