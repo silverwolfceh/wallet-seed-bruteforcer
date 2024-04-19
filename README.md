@@ -1,36 +1,39 @@
 <div align='center'>
-
-<h1>Bruteforcing forgotten wallet using seed phases</h1>
-
-
+<h1>Bruteforcing forgotten wallet using seed phrases</h1>
 </div>
-
-# :notebook_with_decorative_cover: Table of Contents
-
-
 
 
 ## :star2: About the Project
+This project aim to find the forgotten wallet using mnemonic generator (12 words).
 
-## :toolbox: Getting Started
+It provide you a GUI and a kind of worker thread for you.
 
-### :gear: Installation
+It also provide the ability to plugin your finder (coinspecific routine)
 
-Install the modules
+### :gear: Getting Started
+1. Clone this repo
+2. Install the requirements in requirements.txt
 ```bash
 pip install -r requirements.txt
 ```
-
-Open config.json and update the data, refer to coinlist.txt for current support coin
-
-### :running: Run Locally
-
-Clone the project
-
+4. Build the coinspecific using util.py and find the pyc in the coinspecific folder
 ```bash
-https://github.com/silverwolfceh/finding-wallet/
+python util.py
 ```
-
+5. Start the gui
 ```bash
-python main.py
+python gui.py
 ```
+6. In the gui, you can make basic config but you can edit config directly in: config.json
+7. Enjoy!
+
+### :running: Todo
+- Add more coin
+- Run without gui
+
+### 💬 Credit
+
+<p align="left">
+<a href="https://fb.com/wolfxforce" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/facebook.svg" alt="wolfxforce" height="30" width="40" /></a> &nbsp;
+  <a href="https://fb.com/wolfxforce" target="blank"><img align="center" src="https://github.com/rahuldkjain/github-profile-readme-generator/raw/master/src/images/icons/Social/github.svg" alt="wolfxforce" height="30" width="40" /></a>
+</p>
