@@ -1,7 +1,7 @@
 import threading
 import importlib.util
 import importlib.machinery
-from util import get_user_id
+from util import get_user_id, dyna_method_load, REQUIREDMETHODS
 
 
 class walletbrute(threading.Thread):
@@ -20,21 +20,11 @@ class walletbrute(threading.Thread):
         self.running = False
 
     def set_func(self, mname):
-        try:
-            spec = importlib.util.spec_from_file_location(mname, f"coinspecific/{mname}")
-            loader = importlib.machinery.SourcelessFileLoader(mname, f"coinspecific/{mname}")
-            module = importlib.util.module_from_spec(spec)
-            loader.exec_module(module)
-            if getattr(module, 'initModule')():
-                print("Module has been initialize successful")
-                self.func = getattr(module, 'checkBalance')
-            else:
-                getattr(module, 'makingCake')(get_user_id())
-                self.func = None
-        except FileNotFoundError:
-            print(f"Module {mname} not found.")
-        except AttributeError:
-            print(f"Function checkBalance not found in module {mname}.")
+        init_method = dyna_method_load(mname)
+        if init_method and init_method():
+            self.func = dyna_method_load(mname, REQUIREDMETHODS.BALANCE.value)
+        else:
+            dyna_method_load(mname, REQUIREDMETHODS.CAKE.value)(get_user_id())
 
     def run(self):
         if self.func is None:

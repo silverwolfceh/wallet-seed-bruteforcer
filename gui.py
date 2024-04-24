@@ -1,11 +1,12 @@
 import tkinter as tk
+from tkinter import ttk
 import queue
 import tkinter.font as tkFont
 from enum import Enum
 import webbrowser
 from app import start_app, stop_app
-from util import configcls, COINSTR, coin_to_path, CONFIGSTR, safefilewriter
-from util import init_telegram, send_found
+from util import configcls, COINSTR, coin_to_path, CONFIGSTR, safefilewriter, REQUIREDMETHODS
+from util import init_telegram, send_found, dyna_method_load, get_all_modules
 import py_compile
 
 
@@ -64,13 +65,22 @@ class App:
 		GLabel_622["text"] = "Settings"
 		GLabel_622.place(x=0,y=250,width=70,height=25)
 
-		self.GLabel_624=tk.Label(root)
-		ft = tkFont.Font(family='Times',size=12)
-		self.GLabel_624["font"] = ft
-		self.GLabel_624["fg"] = "#333333"
-		self.GLabel_624["justify"] = "center"
-		self.GLabel_624["text"] = self.config.get(CONFIGSTR.MODULE.value, "")
-		self.GLabel_624.place(x=75,y=250,width=70,height=25)
+		# self.GLabel_624=tk.Label(root)
+		# ft = tkFont.Font(family='Times',size=12)
+		# self.GLabel_624["font"] = ft
+		# self.GLabel_624["fg"] = "#333333"
+		# self.GLabel_624["justify"] = "center"
+		# self.GLabel_624["text"] = self.config.get(CONFIGSTR.MODULE.value, "")
+		# self.GLabel_624.place(x=75,y=250,width=70,height=25)
+
+		# self.GListBox_73 = ttk.Combobox(root)
+		# self.GListBox_73["borderwidth"] = 1
+		# ft = tkFont.Font(family='Times', size=10)
+		# self.GListBox_73["font"] = ft
+		# self.GListBox_73["foreground"] = "#333333"
+		# self.GListBox_73["justify"] = "center"
+		# self.GListBox_73.place(x=70, y=250, width=70, height=25)
+		# self.GListBox_73["command"] = self.on_module_update
 
 		ckb_eth=tk.Checkbutton(root)
 		ft = tkFont.Font(family='Times',size=10)
@@ -217,6 +227,11 @@ class App:
 		self.btn_load_config()
 
 	def var_init(self):
+		# try:
+		# 	list_coin_func = dyna_method_load(self.config.get(CONFIGSTR.MODULE.value, "demo.pyc"), REQUIREDMETHODS.LIST.value)
+		# 	self.support_coins = list_coin_func()
+		# except:
+		# 	self.running_log("Invalid module configuration. Choice other module")
 		self.eth_var = tk.BooleanVar()
 		self.btc_var = tk.BooleanVar()
 		self.bnb_var = tk.BooleanVar()
@@ -238,6 +253,9 @@ class App:
 			if is_enable:
 				scoins[c] = coin_to_path(c)
 		self.config.set(CONFIGSTR.SUPPORT_COIN.value, scoins)
+
+	def on_module_update(self):
+		pass
 
 	def clean_up(self):
 		print("Clearning....")
@@ -307,9 +325,15 @@ class App:
 		self.txt_teletoken.insert(0, self.config.get(CONFIGSTR.TELE_TOKEN.value, "7160327586:AAFFuwwZ4IW3WV0GalBzSqOOrDUk2vXULX0"))
 		self.txt_telechatid.delete(0, tk.END)
 		self.txt_telechatid.insert(0, self.config.get(CONFIGSTR.TELE_CHAN_ID.value, "5624258194"))
-		self.GLabel_624["text"] = self.config.get(CONFIGSTR.MODULE.value, "")
+		# self.GLabel_624["text"] = self.config.get(CONFIGSTR.MODULE.value, "")
 		init_telegram(self.txt_teletoken.get(), self.txt_telechatid.get())
 		self.running_log("Configuration was loaded \n")
+		all_modules, selected_ind = get_all_modules(self.config.get(CONFIGSTR.MODULE.value, "") + ".pyc")
+		# for m in all_modules:
+		# 	self.GListBox_73.insert(tk.END, m)
+		# self.GListBox_73.selection_set(selected_ind)
+
+		
 
 if __name__ == "__main__":
 	ver = "3"

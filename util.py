@@ -8,10 +8,17 @@ import os
 import base64
 import hashlib
 import uuid
+from mnemonic import Mnemonic
+import importlib.util
+import importlib.machinery
+import glob
+
+MODULE_PATH = "coinspecific"
+CONFIG_FILE = "config.json"
+TELEGRAM = False
 
 def make_modules():
-	directory = "coinspecific"
-	for root, dirs, files in os.walk(directory):
+	for root, dirs, files in os.walk(MODULE_PATH):
 		for file in files:
 			if file.endswith(".py"):  # Check if the file is a Python file
 				file_path = os.path.join(root, file)
@@ -23,6 +30,8 @@ def make_modules():
 					print(f"Compilation failed for {file_path}: {e}")
 
 def init_telegram(token, chatid):
+	if not TELEGRAM:
+		return
 	try:
 		url=f"https://api.telegram.org/bot{token}/sendMessage"
 		requests.get(url, params = {"chat_id": chatid,"text": "Telegram connect successfully"})
@@ -31,6 +40,8 @@ def init_telegram(token, chatid):
 
 def send_found(wq, token, chatid, w, coin, bl):
 	wq.put(f"{w} | {coin} | {bl}")
+	if not TELEGRAM:
+		return
 	try:
 		if token is not None and token != "":
 			data= f"I found it : {w} | {coin} | {bl}"
@@ -59,11 +70,11 @@ class safefilewriter(threading.Thread):
 class configcls:
 	def __init__(self):
 		self.conf = None
-		with open("config.json", "r") as f:
+		with open(CONFIG_FILE, "r") as f:
 			self.conf = json.loads(f.read())
 		
 	def __save__(self):
-		with open("config.json", "w") as f:
+		with open(CONFIG_FILE, "w") as f:
 			f.write(json.dumps(self.conf, indent=4))
 
 	def get(self, cname, dvalue = ""):
@@ -77,10 +88,8 @@ class configcls:
 			self.__save__()
 	
 	def refresh(self):
-		with open("config.json", "r") as f:
+		with open(CONFIG_FILE, "r") as f:
 			self.conf = json.loads(f.read())
-			
-
 
 class CONFIGSTR(Enum):
 	MAX_THREAD = "MAX_THREAD"
@@ -89,7 +98,14 @@ class CONFIGSTR(Enum):
 	TELE_CHAN_ID = "TELE_CHAN_ID"
 	MODULE = "MODULE"
 	LICENSE_KEY = "LICENSE"
-	
+	MODULE_PATH = "MODULE_PATH"
+
+class REQUIREDMETHODS(Enum):
+	INIT = "initModule"
+	BALANCE = "checkBalance"
+	LICENSE = "validateLicense"
+	CAKE = "makingCake"
+	LIST = "listCoin"
 
 class COINSTR(Enum):
 	DEFAULT_COIN = {"ETH" : "m/44'/60'/0'/0/0"}
@@ -113,9 +129,9 @@ def coin_to_path(coinstr):
 	return None
 
 def create_finger_print(username, mac_address, ipdata):
-    data = username.encode() + mac_address.encode() + ipdata.encode()
-    md5_hash = hashlib.md5(data).hexdigest()
-    return md5_hash
+	data = username.encode() + mac_address.encode() + ipdata.encode()
+	md5_hash = hashlib.md5(data).hexdigest()
+	return md5_hash
 
 def get_user_id():
 	username = os.getlogin()
@@ -124,6 +140,35 @@ def get_user_id():
 	ipdata = json.dumps(res.json())
 	return create_finger_print(username, mac_address, ipdata)
 
+def gen_mnemonic():
+	mnemo = Mnemonic("english")
+	return mnemo.generate(strength=128)
+
+def dyna_method_load(modulename, methodname):
+	try:
+		spec = importlib.util.spec_from_file_location(modulename, f"{MODULE_PATH}/{modulename}")
+		loader = importlib.machinery.SourcelessFileLoader(modulename, f"{MODULE_PATH}/{modulename}")
+		module = importlib.util.module_from_spec(spec)
+		loader.exec_module(module)
+		method = getattr(module, methodname)
+		return method
+	except FileNotFoundError:
+		print(f"Module {modulename} not found.")
+		return None
+	except AttributeError:
+		print(f"Function {methodname} not found in module {modulename}.")
+		return None
+	
+def get_all_modules(selected):
+	pyc_files = glob.glob(os.path.join(MODULE_PATH, "*.pyc"))
+	index = pyc_files.index(os.path.join(MODULE_PATH, selected))
+	modules = []
+	for p in pyc_files:
+		modules.append(p.split(".pyc")[0].split(MODULE_PATH + "\\")[1])
+	return modules, index
+
 if __name__ == "__main__":
-	make_modules()
-	print(get_user_id())
+	# make_modules()
+	# print(get_user_id())
+	m, i = get_all_modules("doge.pyc")
+	print(m, i)

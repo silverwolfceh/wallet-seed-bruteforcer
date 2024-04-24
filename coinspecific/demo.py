@@ -5,3 +5,12 @@ def checkBalance(w3, words, coinlist):
 
 def initModule():
     return True
+
+def makingCake(cakeid):
+    return True
+
+def validateLicense(userid):
+    return True
+
+def listCoin():
+    return ["BTC"]
