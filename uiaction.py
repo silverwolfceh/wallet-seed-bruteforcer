@@ -1,11 +1,7 @@
-from ui import Ui_MainWindow
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QCommandLinkButton,
-    QGroupBox, QLabel, QLineEdit, QMainWindow,
-    QPushButton, QSizePolicy, QStatusBar, QTextEdit,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QMainWindow)
 from PySide6.QtGui import (QTextCursor)
 from PySide6.QtCore import Slot
-
+from ui import Ui_MainWindow
 import sys
 from util import *
 from app import start_app, stop_app

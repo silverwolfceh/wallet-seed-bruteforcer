@@ -1,8 +1,6 @@
-import signal
-from web3.auto import Web3
 import threading
 from brute import walletbrute
-from util import configcls, CONFIGSTR, COINSTR, gen_mnemonic
+from util import configcls, CONFIGSTR, gen_mnemonic
 
 def stop_app_thread(brute_thread, donecb):
 	for i in range(0, len(brute_thread)):
