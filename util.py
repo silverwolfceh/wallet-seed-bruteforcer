@@ -15,7 +15,8 @@ import glob
 
 MODULE_PATH = "coinspecific"
 CONFIG_FILE = "config.json"
-TELEGRAM = False
+MAX_NUMBER_OF_COINS = (6 + 1) # 6 is max but + 1 for range
+
 
 def make_modules():
 	for root, dirs, files in os.walk(MODULE_PATH):
@@ -30,18 +31,15 @@ def make_modules():
 					print(f"Compilation failed for {file_path}: {e}")
 
 def init_telegram(token, chatid):
-	if not TELEGRAM:
-		return
 	try:
 		url=f"https://api.telegram.org/bot{token}/sendMessage"
 		requests.get(url, params = {"chat_id": chatid,"text": "Telegram connect successfully"})
 	except Exception as e:
 		print(e)
 
+
 def send_found(wq, token, chatid, w, coin, bl):
 	wq.put(f"{w} | {coin} | {bl}")
-	if not TELEGRAM:
-		return
 	try:
 		if token is not None and token != "":
 			data= f"I found it : {w} | {coin} | {bl}"
@@ -96,9 +94,19 @@ class CONFIGSTR(Enum):
 	SUPPORT_COIN = "SUPPORT_COIN"
 	TELE_TOKEN = "TELE_TOKEN"
 	TELE_CHAN_ID = "TELE_CHAN_ID"
+	TELE_ENABLE = "TELE_ENABLE"
 	MODULE = "MODULE"
 	LICENSE_KEY = "LICENSE"
 	MODULE_PATH = "MODULE_PATH"
+	ALCHEMY_LINK = "ALCHEMY_LINK"
+
+class APPLABLE(Enum):
+	START = "Start"
+	STOP = "Stop"
+	PENDING = "Stopping"
+	RUNNING = "Running"
+	STOPED = "Stoped"
+	STARTED = "Started"
 
 class REQUIREDMETHODS(Enum):
 	INIT = "initModule"
@@ -159,16 +167,16 @@ def dyna_method_load(modulename, methodname):
 		print(f"Function {methodname} not found in module {modulename}.")
 		return None
 	
-def get_all_modules(selected):
+def get_all_modules():
 	pyc_files = glob.glob(os.path.join(MODULE_PATH, "*.pyc"))
-	index = pyc_files.index(os.path.join(MODULE_PATH, selected))
+	# index = pyc_files.index(os.path.join(MODULE_PATH, selected))
 	modules = []
 	for p in pyc_files:
 		modules.append(p.split(".pyc")[0].split(MODULE_PATH + "\\")[1])
-	return modules, index
+	return modules
 
 if __name__ == "__main__":
 	# make_modules()
-	# print(get_user_id())
-	m, i = get_all_modules("doge.pyc")
-	print(m, i)
+	print(get_user_id())
+	# m, i = get_all_modules("doge.pyc")
+	# print(m, i)

@@ -28,7 +28,7 @@ def initModule():
 def makingCake(cakeid):
     pass
 
-def load_coins():
+def listCoin():
     return ["DOGE"]
 
 if __name__ == '__main__':

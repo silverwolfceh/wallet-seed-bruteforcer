@@ -24,7 +24,7 @@ python util.py
 ```
 5. Start the gui
 ```bash
-python gui.py
+python main.py
 ```
 6. In the gui, you can make basic config but you can edit config directly in: config.json
 7. Enjoy!

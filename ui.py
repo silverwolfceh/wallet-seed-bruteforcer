@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'untitledpBVBUI.ui'
+## Form generated from reading UI file 'untitledSxsMzF.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.4.3
 ##
@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QCommandLinkB
     QPushButton, QSizePolicy, QStatusBar, QTextEdit,
     QWidget)
 
-class Ui_MainWindow(QWidget):
+class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
@@ -56,18 +56,14 @@ class Ui_MainWindow(QWidget):
         self.label.setGeometry(QRect(10, 20, 111, 16))
         self.label.setFont(font)
         self.modulenamecbx = QComboBox(self.groupBox_2)
-        self.modulenamecbx.addItem("")
-        self.modulenamecbx.addItem("")
-        self.modulenamecbx.addItem("")
-        self.modulenamecbx.addItem("")
         self.modulenamecbx.setObjectName(u"modulenamecbx")
         self.modulenamecbx.setGeometry(QRect(120, 20, 91, 22))
         self.label_2 = QLabel(self.groupBox_2)
         self.label_2.setObjectName(u"label_2")
         self.label_2.setGeometry(QRect(10, 50, 71, 16))
-        self.lineEdit = QLineEdit(self.groupBox_2)
-        self.lineEdit.setObjectName(u"lineEdit")
-        self.lineEdit.setGeometry(QRect(120, 50, 91, 21))
+        self.maxthreadtxt = QLineEdit(self.groupBox_2)
+        self.maxthreadtxt.setObjectName(u"maxthreadtxt")
+        self.maxthreadtxt.setGeometry(QRect(120, 50, 91, 21))
         self.label_3 = QLabel(self.groupBox_2)
         self.label_3.setObjectName(u"label_3")
         self.label_3.setGeometry(QRect(10, 80, 81, 16))
@@ -88,7 +84,7 @@ class Ui_MainWindow(QWidget):
         self.teleenablecks.setGeometry(QRect(480, 80, 75, 20))
         self.coin_1_cks = QCheckBox(self.groupBox_2)
         self.coin_1_cks.setObjectName(u"coin_1_cks")
-        self.coin_1_cks.setEnabled(False)
+        self.coin_1_cks.setEnabled(True)
         self.coin_1_cks.setGeometry(QRect(230, 20, 91, 20))
         self.coin_4_cks = QCheckBox(self.groupBox_2)
         self.coin_4_cks.setObjectName(u"coin_4_cks")
@@ -131,13 +127,13 @@ class Ui_MainWindow(QWidget):
         icon1 = QIcon()
         icon1.addFile(u"../rokcontrol/rokcontrolweb/static/zalo.gif", QSize(), QIcon.Normal, QIcon.Off)
         self.zalobtn.setIcon(icon1)
-        self.d = QCommandLinkButton(self.centralwidget)
-        self.d.setObjectName(u"d")
-        self.d.setGeometry(QRect(190, 530, 101, 41))
+        self.discordbtn = QCommandLinkButton(self.centralwidget)
+        self.discordbtn.setObjectName(u"discordbtn")
+        self.discordbtn.setGeometry(QRect(190, 530, 101, 41))
         icon2 = QIcon()
         icon2.addFile(u"../rokcontrol/rokcontrolweb/static/discord.gif", QSize(), QIcon.Normal, QIcon.Off)
-        self.d.setIcon(icon2)
-        self.d.setCheckable(False)
+        self.discordbtn.setIcon(icon2)
+        self.discordbtn.setCheckable(False)
         self.label_5 = QLabel(self.centralwidget)
         self.label_5.setObjectName(u"label_5")
         self.label_5.setEnabled(False)
@@ -158,13 +154,8 @@ class Ui_MainWindow(QWidget):
         self.runningLog.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Scanning log", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"Settings", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Choice module: ", None))
-        self.modulenamecbx.setItemText(0, QCoreApplication.translate("MainWindow", u"BTC", None))
-        self.modulenamecbx.setItemText(1, QCoreApplication.translate("MainWindow", u"Demo", None))
-        self.modulenamecbx.setItemText(2, QCoreApplication.translate("MainWindow", u"Eth", None))
-        self.modulenamecbx.setItemText(3, QCoreApplication.translate("MainWindow", u"Doge", None))
-
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Thread #", None))
-        self.lineEdit.setText(QCoreApplication.translate("MainWindow", u"20", None))
+        self.maxthreadtxt.setText(QCoreApplication.translate("MainWindow", u"20", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Channel ID: ", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"Bot token:", None))
         self.teleenablecks.setText(QCoreApplication.translate("MainWindow", u"Enable", None))
@@ -181,7 +172,7 @@ class Ui_MainWindow(QWidget):
         self.groupBox_4.setTitle(QCoreApplication.translate("MainWindow", u"Found log", None))
         self.foundlog.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Scanning log", None))
         self.zalobtn.setText(QCoreApplication.translate("MainWindow", u"Zalo", None))
-        self.d.setText(QCoreApplication.translate("MainWindow", u"Discord", None))
+        self.discordbtn.setText(QCoreApplication.translate("MainWindow", u"Discord", None))
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"Created by Eric The Cat", None))
     # retranslateUi
 

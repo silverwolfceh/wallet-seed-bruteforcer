@@ -24,8 +24,11 @@ def checkBalance(w3, words, coinlist):
 def initModule():
 	return True
 
-if __name__ == '__main__':
-	w3 = Web3(Web3.HTTPProvider("https://eth-mainnet.g.alchemy.com/v2/OatS-qWUFcNjgKNFTrq1m14A9h51mX2N"))
-	word = "float bridge decline salmon visit mosquito smoke room giggle stamp normal unlock"
-	coinlist = {'bnb' : "m/44'/60'/0'/0/0"}
-	print(checkBalance(w3, word, coinlist))
+def listCoin():
+	return ["ETH"]
+
+# if __name__ == '__main__':
+# 	w3 = Web3(Web3.HTTPProvider("https://eth-mainnet.g.alchemy.com/v2/OatS-qWUFcNjgKNFTrq1m14A9h51mX2N"))
+# 	word = "float bridge decline salmon visit mosquito smoke room giggle stamp normal unlock"
+# 	coinlist = {'bnb' : "m/44'/60'/0'/0/0"}
+# 	print(checkBalance(w3, word, coinlist))
