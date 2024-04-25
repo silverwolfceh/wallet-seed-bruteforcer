@@ -6,6 +6,7 @@ import sys
 from util import *
 from app import start_app, stop_app
 from web3.auto import Web3
+import queue
 
 class uiaction(Ui_MainWindow):
     def __init__(self, MainWindow) -> None:
@@ -18,8 +19,8 @@ class uiaction(Ui_MainWindow):
         self.valid = True
         self.cur_state = APPLABLE.STOP
         self.next_state = APPLABLE.START
+        self.log_q = queue.Queue()
         self.setupAction()
-        
 
     def setupAction(self):
         for i in range(1, MAX_NUMBER_OF_COINS):
@@ -46,6 +47,7 @@ class uiaction(Ui_MainWindow):
         self.exportbtn.clicked.connect(self.export_hits)
         self.zalobtn.clicked.connect(self.zalo_contact_open)
         self.discordbtn.clicked.connect(self.discord_contact_open)
+        self.start_log_thread()
         
 
     def zalo_contact_open(self):
@@ -92,15 +94,33 @@ class uiaction(Ui_MainWindow):
         self.startstopbtn.setEnabled(True)
         self.startstopbtn.setText(APPLABLE.START.value)
         pass
-    
+
+    def log_cb_ui_update(self, queue):
+        while True:
+            if self.cur_state == APPLABLE.RUNNING:
+                data = queue.get()
+                if data is not None:
+                    self.runningLog.append(data)
+                    cursor = self.runningLog.textCursor()
+                    cursor.movePosition(QTextCursor.End)
+                    self.runningLog.setTextCursor(cursor)
+                    self.runningLog.ensureCursorVisible()
+                    queue.task_done()
+                    time.sleep(0.1)
+                else:
+                    pass
+            else:
+                while not queue.empty():
+                    queue.get_nowait()
+                time.sleep(1)
+
+    def start_log_thread(self):
+        thread = threading.Thread(target=self.log_cb_ui_update, args=(self.log_q, ))
+        thread.start()
+
     @Slot(str)
     def log_cb(self, log):
-        self.runningLog.append(log)
-        cursor = self.runningLog.textCursor()
-        cursor.movePosition(QTextCursor.End)
-        self.runningLog.setTextCursor(cursor)
-        self.runningLog.ensureCursorVisible()
-        pass
+        self.log_q.put(log)
 
     @Slot(str, str, str)
     def found_cb(self, w, coin, bl):
@@ -136,7 +156,7 @@ class uiaction(Ui_MainWindow):
         self.cfg.set(CONFIGSTR.MODULE.value, mname)
 
     def coin_x_change(self, event, sender):
-        for i in range(1, 7):
+        for i in range(1, MAX_NUMBER_OF_COINS):
             checkbox = getattr(self, f"coin_{i}_cks")
             coinname = checkbox.text()
             if checkbox == sender:
