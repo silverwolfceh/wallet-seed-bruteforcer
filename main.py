@@ -1,4 +1,6 @@
-from uiaction import main
+from gui import start_gui
+
+TOOL_VERSION = "4.0.1"
 
 if __name__ == "__main__":
-    main()
+    start_gui(TOOL_VERSION)

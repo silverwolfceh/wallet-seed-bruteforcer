@@ -1,5 +1,5 @@
 import threading
-from brute import walletbrute
+from worker import walletbrute
 from util import configcls, CONFIGSTR, gen_mnemonic
 
 def stop_app_thread(brute_thread, donecb):
@@ -22,6 +22,9 @@ def stop_app(brute_thread, donecb):
 def start_app(logcb, foundcb, coinlist, w3provider = None):
 	brute_thread = {}
 	configs = configcls()
+	if len(coinlist) < 1:
+		logcb("You need to enable at least one coin. Stop")
+		return None
 	max_thread = int(configs.get(CONFIGSTR.MAX_THREAD.value, 10))
 	for i in range(0, max_thread):
 		thread_ = walletbrute(w3provider, gen_mnemonic, coinlist)
@@ -32,4 +35,5 @@ def start_app(logcb, foundcb, coinlist, w3provider = None):
 		tattr["t"] = threading.Thread(target=thread_.run)
 		brute_thread[i] = tattr
 		brute_thread[i]["t"].start()
+	logcb("Started")
 	return brute_thread

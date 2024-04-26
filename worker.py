@@ -4,7 +4,7 @@ from PySide6.QtCore import QObject, Signal
 
 class walletbrute(QObject):
     run_log_signal = Signal(str)
-    found_log_signal = Signal(str, str, str)
+    found_log_signal = Signal(str, str, float)
     def __init__(self, w3, genfunc, coinlist):
         super().__init__()
         self.w3 = w3
@@ -37,8 +37,8 @@ class walletbrute(QObject):
             try:
                 r, coin, bl = self.func(self.w3, w, self.coinlist)
                 if r:
-                    self.found_log_signal.emit(w, coin, bl)
-                self.run_log_signal.emit(f"Balance: {bl} - {w}")
+                    self.found_log_signal.emit(w, coin, float(bl))
+                print(f"Balance: {bl} - {w}")
             except Exception as e:
-                self.run_log_signal.emit(f"Error: {w}")
                 print(e)
+                # self.run_log_signal.emit(e)

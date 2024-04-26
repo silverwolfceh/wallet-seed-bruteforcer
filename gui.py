@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import (QApplication, QMainWindow)
-from PySide6.QtGui import (QTextCursor)
-from PySide6.QtCore import Slot
+from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
+from PySide6.QtGui import QTextCursor, QDesktopServices
+from PySide6.QtCore import Slot, QUrl
 from ui import Ui_MainWindow
 import sys
 from util import *
@@ -8,14 +8,16 @@ from app import start_app, stop_app
 from web3.auto import Web3
 import queue
 
-class uiaction(Ui_MainWindow):
-    def __init__(self, MainWindow) -> None:
+class uiaction(QMainWindow, Ui_MainWindow):
+    def __init__(self, ver = "") -> None:
         super().__init__()
-        self.setupUi(MainWindow)
+        self.setupUi(self)
+        self.setFixedSize(self.size())
         self.cfg = configcls()
         self.coinlist = []
         self.alchemy = None
         self.app_thread = []
+        self.alive = True
         self.valid = True
         self.cur_state = APPLABLE.STOP
         self.next_state = APPLABLE.START
@@ -45,19 +47,19 @@ class uiaction(Ui_MainWindow):
         self.startstopbtn.clicked.connect(self.start_stop_app)
         self.configbtn.clicked.connect(self.reload_configuration)
         self.exportbtn.clicked.connect(self.export_hits)
-        self.zalobtn.clicked.connect(self.zalo_contact_open)
-        self.discordbtn.clicked.connect(self.discord_contact_open)
-        self.start_log_thread()
-        
-
-    def zalo_contact_open(self):
-        pass
-
-    def discord_contact_open(self):
-        pass
+        self.zalobtn.clicked.connect(lambda: self.open_contact(self.zalobtn))
+        self.discordbtn.clicked.connect(lambda: self.open_contact(self.discordbtn))
+        self.telegrambtn.clicked.connect(lambda: self.open_contact(self.telegrambtn))
 
     def export_hits(self):
-        pass
+        file_dialog = QFileDialog(self)
+        file_dialog.setAcceptMode(QFileDialog.AcceptSave)
+        file_path, _ = file_dialog.getSaveFileName(self, "Save File", "", "Text Files (*.txt);;All Files (*)")
+        if file_path:
+            data = self.foundlog.toPlainText()
+            with open(file_path, "w") as file:
+                file.write(data)
+            self.log_cb(f"Exported hit to {file_path}")
 
     def reload_configuration(self):
         self.cfg.refresh()
@@ -73,9 +75,10 @@ class uiaction(Ui_MainWindow):
                 if alchemyurl:
                     self.alchemy = Web3(Web3.HTTPProvider(alchemyurl))
                 self.app_thread = start_app(self.log_cb, self.found_cb, self.coinlist, self.alchemy)
-                # Set the state
-                self.startstopbtn.setText(self.cur_state.value)
-                self.cur_state = APPLABLE.RUNNING
+                if self.app_thread:
+                    # Set the state
+                    self.startstopbtn.setText(self.cur_state.value)
+                    self.cur_state = APPLABLE.RUNNING
             else:
                 print("Not a valid configuration")
                 sys.exit(1)
@@ -90,41 +93,27 @@ class uiaction(Ui_MainWindow):
             sys.exit(1)
 
     def done_cb(self):
+        self.log_cb("Stopped")
         self.cur_state = APPLABLE.STOP
         self.startstopbtn.setEnabled(True)
         self.startstopbtn.setText(APPLABLE.START.value)
-        pass
-
-    def log_cb_ui_update(self, queue):
-        while True:
-            if self.cur_state == APPLABLE.RUNNING:
-                data = queue.get()
-                if data is not None:
-                    self.runningLog.append(data)
-                    cursor = self.runningLog.textCursor()
-                    cursor.movePosition(QTextCursor.End)
-                    self.runningLog.setTextCursor(cursor)
-                    self.runningLog.ensureCursorVisible()
-                    queue.task_done()
-                    time.sleep(0.1)
-                else:
-                    pass
-            else:
-                while not queue.empty():
-                    queue.get_nowait()
-                time.sleep(1)
-
-    def start_log_thread(self):
-        thread = threading.Thread(target=self.log_cb_ui_update, args=(self.log_q, ))
-        thread.start()
 
     @Slot(str)
     def log_cb(self, log):
-        self.log_q.put(log)
+        self.runningLog.append(log)
+        cursor = self.runningLog.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.runningLog.setTextCursor(cursor)
+        self.runningLog.ensureCursorVisible()
 
-    @Slot(str, str, str)
+    @Slot(str, str, float)
     def found_cb(self, w, coin, bl):
-        pass
+        data = f"{coin} : {bl} -- Key/Menonic: {w}"
+        self.foundlog.append(data)
+        cursor = self.foundlog.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.foundlog.setTextCursor(cursor)
+        self.foundlog.ensureCursorVisible()
 
     def text_config_update(self, newtext, configvar):
         self.cfg.set(configvar, newtext)
@@ -139,17 +128,18 @@ class uiaction(Ui_MainWindow):
         self.coinlist = []
         coins = dyna_method_load(mname, REQUIREDMETHODS.LIST.value)()
         if len(coins) <= 0 or len(coins) >= MAX_NUMBER_OF_COINS:
-            self.runningLog.append("Sorry, your module is not valid")
+            self.log_cb("Sorry, your module is not valid")
         else:
             for i in range(1, len(coins) + 1):
                 checkbox = getattr(self, f"coin_{i}_cks")
                 checkbox.setText(coins[i-1])
-                self.coinlist.append(coins[i-1])
                 checkbox.show()
+                checkbox.setChecked(False)
 
             for i in range(len(coins) + 1, MAX_NUMBER_OF_COINS):
                 checkbox = getattr(self, f"coin_{i}_cks")
                 checkbox.hide()
+                checkbox.setChecked(False)
 
     def module_name_change(self, mname):
         self.load_checkbox_coin(mname)
@@ -161,14 +151,35 @@ class uiaction(Ui_MainWindow):
             coinname = checkbox.text()
             if checkbox == sender:
                 if sender.isChecked():
+                    self.coinlist.append(coinname)
                     print(f"[{coinname}] is enable")
                 else:
+                    self.coinlist.remove(coinname)
                     print(f"[{coinname}] is disable")
+    
+    def open_contact(self, sender):
+        url = ""
+        if sender == self.zalobtn:
+            url = "https://zalo.me/g/vtltxs287"
+        elif sender == self.discordbtn:
+            url = "https://discord.gg/PzJ7spKRdp"
+        elif sender == self.telegrambtn:
+            url = "https://t.me/seedBruteforcer"
+        path = QUrl(url)
+        QDesktopServices.openUrl(path)
 
-def main():
+    def closeEvent(self, event):
+        print("Clean up")
+        self.alive = False
+        event.accept()
+
+
+
+
+def start_gui(ver):
     app = QApplication(sys.argv)
-    MainWindow = QMainWindow()
-    ui = uiaction(MainWindow)
+    MainWindow = uiaction()
+    # ui = uiaction(MainWindow)
     # ui.setupUi(MainWindow)
     # ui.setupAction()
     MainWindow.show()
