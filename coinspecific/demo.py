@@ -21,4 +21,4 @@ def validateLicense(userid):
     return True
 
 def listCoin():
-    return ["BTC"]
+    return ["BTC", "ETH", "BNB", "SOL", "DOGE", "ENA"]

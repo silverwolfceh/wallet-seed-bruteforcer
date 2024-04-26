@@ -66,13 +66,14 @@ class safefilewriter(threading.Thread):
 			
 
 class configcls:
-	def __init__(self):
+	def __init__(self, cpath = CONFIG_FILE):
 		self.conf = None
-		with open(CONFIG_FILE, "r") as f:
+		self.cpath = cpath
+		with open(cpath, "r") as f:
 			self.conf = json.loads(f.read())
 		
 	def __save__(self):
-		with open(CONFIG_FILE, "w") as f:
+		with open(self.cpath, "w") as f:
 			f.write(json.dumps(self.conf, indent=4))
 
 	def get(self, cname, dvalue = ""):
@@ -86,7 +87,7 @@ class configcls:
 			self.__save__()
 	
 	def refresh(self):
-		with open(CONFIG_FILE, "r") as f:
+		with open(self.cpath, "r") as f:
 			self.conf = json.loads(f.read())
 
 class CONFIGSTR(Enum):

@@ -7,6 +7,7 @@ from util import *
 from app import start_app, stop_app
 from web3.auto import Web3
 import queue
+from datetime import datetime
 
 class uiaction(QMainWindow, Ui_MainWindow):
     def __init__(self, ver = "") -> None:
@@ -79,6 +80,7 @@ class uiaction(QMainWindow, Ui_MainWindow):
                     # Set the state
                     self.startstopbtn.setText(self.cur_state.value)
                     self.cur_state = APPLABLE.RUNNING
+                    self.handle_state_update()
             else:
                 print("Not a valid configuration")
                 sys.exit(1)
@@ -92,15 +94,36 @@ class uiaction(QMainWindow, Ui_MainWindow):
             print("App state not a valid one")
             sys.exit(1)
 
+    def handle_ui_change(self, enable = False):
+        self.modulenamecbx.setDisabled(enable)
+        self.teleenablecks.setDisabled(enable)
+        self.chantxt.setDisabled(enable)
+        self.tokentxt.setDisabled(enable)
+        self.maxthreadtxt.setDisabled(enable)
+        for i in range(1, MAX_NUMBER_OF_COINS):
+            checkbox = getattr(self, f"coin_{i}_cks")
+            checkbox.setDisabled(enable)
+
+
+    def handle_state_update(self):
+        if self.cur_state == APPLABLE.RUNNING:
+            self.handle_ui_change(True)
+        else:
+            self.handle_ui_change(False)
+            
+
     def done_cb(self):
         self.log_cb("Stopped")
         self.cur_state = APPLABLE.STOP
         self.startstopbtn.setEnabled(True)
         self.startstopbtn.setText(APPLABLE.START.value)
+        self.handle_state_update()
 
     @Slot(str)
     def log_cb(self, log):
-        self.runningLog.append(log)
+        current_time = datetime.now()
+        formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+        self.runningLog.append(f"[{formatted_time}] {log}")
         cursor = self.runningLog.textCursor()
         cursor.movePosition(QTextCursor.End)
         self.runningLog.setTextCursor(cursor)
@@ -108,7 +131,9 @@ class uiaction(QMainWindow, Ui_MainWindow):
 
     @Slot(str, str, float)
     def found_cb(self, w, coin, bl):
-        data = f"{coin} : {bl} -- Key/Menonic: {w}"
+        current_time = datetime.now()
+        formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+        data = f"[{formatted_time}] {coin} : {bl} -- Key/Menonic: {w}"
         self.foundlog.append(data)
         cursor = self.foundlog.textCursor()
         cursor.movePosition(QTextCursor.End)
@@ -129,6 +154,7 @@ class uiaction(QMainWindow, Ui_MainWindow):
         coins = dyna_method_load(mname, REQUIREDMETHODS.LIST.value)()
         if len(coins) <= 0 or len(coins) >= MAX_NUMBER_OF_COINS:
             self.log_cb("Sorry, your module is not valid")
+            self.startstopbtn.setDisabled(True)
         else:
             for i in range(1, len(coins) + 1):
                 checkbox = getattr(self, f"coin_{i}_cks")
@@ -140,6 +166,7 @@ class uiaction(QMainWindow, Ui_MainWindow):
                 checkbox = getattr(self, f"coin_{i}_cks")
                 checkbox.hide()
                 checkbox.setChecked(False)
+            self.startstopbtn.setDisabled(False)
 
     def module_name_change(self, mname):
         self.load_checkbox_coin(mname)
