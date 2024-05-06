@@ -1,33 +1,39 @@
 import requests
-from cryptofuzz import Dogecoin, Convertor
+from cryptofuzz import Dogecoin, Convertor,Ethereum
 
-def checkBalance(w3, words, coinlist):
-    func_mapping = {
-        "DOGE" : checkBalanceDoge
+def checkBalance(w3, words, c):
+    return checkCoinBalance(words, c)
+
+
+def checkCoinBalance(words, coin):
+    obj_mapping = {
+        "DOGE" : Dogecoin,
+        "ETH" : Ethereum,
     }
-    for c in coinlist:
-        if c in func_mapping:
-            return func_mapping[c](words)
-
-def checkBalanceDoge(words):
-    doge = Dogecoin()
-    conv = Convertor()
-    convert_hex = conv.mne_to_hex(words)
-    doge_addr = doge.hex_addr(convert_hex)
-    try:
-        url = f"https://dogecoin.atomicwallet.io/api/v2/address/{doge_addr}"
-        req = requests.get(url)
-        if req.status_code == 200:
-            bal = req.json()["balance"]
-            bal = int(bal) / 100000000
-            if bal > 0:
-                return True, "DOGE", bal
-            return False, "DOGE", 0
-        else:
-           return False, "DOGE", 0
-    except Exception as e:
-        print(e)
-        return False, "DOGE", 0
+    api_to_check = {
+        "DOGE" : "https://dogecoin.atomicwallet.io/api/v2/address/",
+        "ETH" : "https://ethbook.guarda.co/api/v2/address/",
+        "BNB" : "https://bsc-nn.atomicwallet.io/api/v2/address/"
+    }
+    if coin in obj_mapping:
+        currencycls = obj_mapping[coin]()
+        conv = Convertor()
+        convert_hex = conv.mne_to_hex(words)
+        currencyaddr = currencycls.hex_addr(convert_hex)
+        for nw, url in api_to_check.items():
+            try:
+                url = url + currencyaddr
+                req = requests.get(url)
+                if req.status_code == 200:
+                    bal = req.json()["balance"]
+                    bal = int(bal)
+                    if bal > 0:
+                        return True, nw, bal
+                    else:
+                        continue
+            except Exception as e:
+               pass
+        return False, coin, 0
 
 def initModule():
     # Check license
@@ -38,11 +44,4 @@ def makingCake(cakeid):
     pass
 
 def listCoin():
-    return ["DOGE"]
-
-if __name__ == '__main__':
-    import sys
-    sys.path.append("..")
-    from util import gen_mnemonic
-    w = gen_mnemonic()
-    print(checkBalance(None, w, []))
+    return ["DOGE", "ETH"]

@@ -76,9 +76,10 @@ class walletbrute2():
         while self.running:
             w = self.gen()
             try:
-                r, coin, bl = self.func(self.w3, w, self.coinlist)
-                if r:
-                    self.foundcb(w, coin, float(bl))
-                print(f"Balance: {bl} - {w}")
+                for c in self.coinlist:
+                    r, coin, bl = self.func(self.w3, w, c)
+                    if r:
+                        self.foundcb(w, coin, float(bl))
+                    print(f"Balance: {bl} - {w}")
             except Exception as e:
                 print(e)
